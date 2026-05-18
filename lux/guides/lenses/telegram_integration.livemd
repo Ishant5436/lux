@@ -1,0 +1,51 @@
+# Telegram Integration Guide
+
+This guide demonstrates how to use the `Lux.Lenses.TelegramLens` to interact with the Telegram Bot API.
+
+## Setup
+
+First, ensure you have a Telegram Bot token from [@BotFather](https://t.me/botfather).
+
+```elixir
+# In your config/config.exs or runtime.exs
+config :lux, :api_keys,
+  telegram_bot: "YOUR_BOT_TOKEN"
+```
+
+## Sending a Message
+
+```elixir
+alias Lux.Lenses.TelegramLens
+
+input = %{
+  action: "sendMessage",
+  chat_id: "123456789",
+  text: "Hello from Lux swarmed intelligence!"
+}
+
+{:ok, result} = TelegramLens.focus(input)
+IO.inspect(result)
+```
+
+## Getting Updates
+
+```elixir
+{:ok, updates} = TelegramLens.focus(%{action: "getUpdates"})
+IO.inspect(updates)
+```
+
+## Advanced Actions
+
+You can use any method supported by the Telegram Bot API by specifying it in the `:action` key.
+
+```elixir
+# Example: Send a Photo
+input = %{
+  action: "sendPhoto",
+  chat_id: "123456789",
+  photo: "https://example.com/image.jpg",
+  caption: "Look at this AI-generated image!"
+}
+
+TelegramLens.focus(input)
+```

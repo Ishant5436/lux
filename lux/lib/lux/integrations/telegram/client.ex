@@ -48,15 +48,18 @@ defmodule Lux.Integrations.Telegram.Client do
   """
   @spec request(atom(), String.t(), request_opts()) :: {:ok, map()} | {:error, term()}
   def request(method, path, opts \\ %{}) do
+    max_retries = opts[:max_retries] || 3
+    do_request(method, path, opts, max_retries, 0)
+  end
+
+  defp do_request(method, path, opts, max_retries, attempt) do
     token = opts[:token] || Lux.Config.telegram_bot_token()
     url = @endpoint <> token <> path
 
     [
       method: method,
       url: url,
-      headers: [
-        {"Content-Type", "application/json"}
-      ],
+      headers: [{"Content-Type", "application/json"}] ++ (opts[:headers] || []),
       json: opts[:json]
     ]
     |> Keyword.merge(Application.get_env(:lux, __MODULE__, []))
@@ -69,6 +72,21 @@ defmodule Lux.Integrations.Telegram.Client do
           %{"ok" => true} = body -> {:ok, body}
           body -> {:error, body}
         end
+
+      {:ok, %{status: 429, body: %{"parameters" => %{"retry_after" => retry_after}}}} ->
+        if attempt < max_retries do
+          Logger.info("Telegram Rate Limit: Retrying after #{retry_after}s (Attempt #{attempt + 1})")
+          Process.sleep(retry_after * 1000)
+          do_request(method, path, opts, max_retries, attempt + 1)
+        else
+          {:error, :rate_limited}
+        end
+
+      {:ok, %{status: status}} when status in [500, 502, 503, 504] and attempt < max_retries ->
+        backoff = 500 * round(:math.pow(2, attempt))
+        Logger.info("Telegram API Error #{status}: Retrying in #{backoff}ms")
+        Process.sleep(backoff)
+        do_request(method, path, opts, max_retries, attempt + 1)
 
       {:ok, %{status: 401}} ->
         {:error, :invalid_token}
