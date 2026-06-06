@@ -22,6 +22,7 @@ jobs:
 
       - name: Set up Elixir
         uses: erlef/setup-beam@v1
+        id: setup-beam
         with:
           otp-version: 'OTP-27.2'
           elixir-version: 'v1.18.1-otp-27'
@@ -126,15 +127,16 @@ jobs:
           path: |
             lux/priv/plts/*.plt
             lux/priv/plts/*.hash
-          key: ${{ runner.os }}-dialyzer-lux-${{ hashFiles('lux/mix.lock') }}
+          key: ${{ runner.os }}-dialyzer-lux-${{ steps.setup-beam.outputs.otp-version }}-${{ steps.setup-beam.outputs.elixir-version }}-${{ hashFiles('lux/mix.lock') }}
           restore-keys: |
+            ${{ runner.os }}-dialyzer-lux-${{ steps.setup-beam.outputs.otp-version }}-${{ steps.setup-beam.outputs.elixir-version }}-
             ${{ runner.os }}-dialyzer-lux-
 
       - name: Debug after cache
         run: |
           echo "Contents of priv/plts after cache restoration:"
           ls -la priv/plts || echo "Directory empty"
-          echo "Cache key used: ${{ runner.os }}-dialyzer-lux-${{ hashFiles('lux/mix.lock') }}"
+          echo \"Cache key used: ${{ runner.os }}-dialyzer-lux-${{ steps.setup-beam.outputs.otp-version }}-${{ steps.setup-beam.outputs.elixir-version }}-${{ hashFiles('lux/mix.lock') }}\"
 
       - name: Compile
         run: mix compile
@@ -150,7 +152,7 @@ jobs:
           path: |
             lux/priv/plts/*.plt
             lux/priv/plts/*.hash
-          key: ${{ runner.os }}-dialyzer-lux-${{ hashFiles('lux/mix.lock') }}
+          key: ${{ runner.os }}-dialyzer-lux-${{ steps.setup-beam.outputs.otp-version }}-${{ steps.setup-beam.outputs.elixir-version }}-${{ hashFiles('lux/mix.lock') }}
 
       - name: Run Dialyzer
         run: mix dialyzer --format github

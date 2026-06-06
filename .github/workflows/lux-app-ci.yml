@@ -38,6 +38,7 @@ jobs:
 
       - name: Set up Elixir
         uses: erlef/setup-beam@v1
+        id: setup-beam
         with:
           otp-version: 'OTP-27.2'
           elixir-version: 'v1.18.1-otp-27'
@@ -71,8 +72,9 @@ jobs:
           path: |
             lux_app/priv/plts/*.plt
             lux_app/priv/plts/*.hash
-          key: ${{ runner.os }}-dialyzer-lux-app-${{ hashFiles('lux_app/mix.lock') }}
+          key: ${{ runner.os }}-dialyzer-lux-app-${{ steps.setup-beam.outputs.otp-version }}-${{ steps.setup-beam.outputs.elixir-version }}-${{ hashFiles('lux_app/mix.lock') }}
           restore-keys: |
+            ${{ runner.os }}-dialyzer-lux-app-${{ steps.setup-beam.outputs.otp-version }}-${{ steps.setup-beam.outputs.elixir-version }}-
             ${{ runner.os }}-dialyzer-lux-app-
 
       - name: Install Mix Dependencies
@@ -88,8 +90,9 @@ jobs:
           path: |
             lux_app/priv/plts/*.plt
             lux_app/priv/plts/*.hash
-          key: ${{ runner.os }}-dialyzer-lux-app-${{ hashFiles('lux_app/mix.lock') }}
+          key: ${{ runner.os }}-dialyzer-lux-app-${{ steps.setup-beam.outputs.otp-version }}-${{ steps.setup-beam.outputs.elixir-version }}-${{ hashFiles('lux_app/mix.lock') }}
           restore-keys: |
+            ${{ runner.os }}-dialyzer-lux-app-${{ steps.setup-beam.outputs.otp-version }}-${{ steps.setup-beam.outputs.elixir-version }}-
             ${{ runner.os }}-dialyzer-lux-app-
 
       - name: Compile
@@ -106,7 +109,7 @@ jobs:
           path: |
             lux_app/priv/plts/*.plt
             lux_app/priv/plts/*.hash
-          key: ${{ runner.os }}-dialyzer-lux-app-${{ hashFiles('lux_app/mix.lock') }}
+          key: ${{ runner.os }}-dialyzer-lux-app-${{ steps.setup-beam.outputs.otp-version }}-${{ steps.setup-beam.outputs.elixir-version }}-${{ hashFiles('lux_app/mix.lock') }}
 
       - name: Install Node.js dependencies
         run: cd assets && npm ci

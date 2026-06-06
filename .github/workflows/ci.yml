@@ -29,6 +29,7 @@ jobs:
 
       - name: Set up Elixir
         uses: erlef/setup-beam@v1
+        id: setup-beam
         with:
           otp-version: 'OTP-27.2'
           elixir-version: 'v1.18.1-otp-27'
@@ -128,8 +129,9 @@ jobs:
           path: |
             lux/priv/plts/*.plt
             lux/priv/plts/*.hash
-          key: ${{ runner.os }}-dialyzer-lux-${{ hashFiles('lux/mix.lock') }}
+          key: ${{ runner.os }}-dialyzer-lux-${{ steps.setup-beam.outputs.otp-version }}-${{ steps.setup-beam.outputs.elixir-version }}-${{ hashFiles('lux/mix.lock') }}
           restore-keys: |
+            ${{ runner.os }}-dialyzer-lux-${{ steps.setup-beam.outputs.otp-version }}-${{ steps.setup-beam.outputs.elixir-version }}-
             ${{ runner.os }}-dialyzer-lux-
 
       - name: Compile
@@ -146,7 +148,7 @@ jobs:
           path: |
             lux/priv/plts/*.plt
             lux/priv/plts/*.hash
-          key: ${{ runner.os }}-dialyzer-lux-${{ hashFiles('lux/mix.lock') }}
+          key: ${{ runner.os }}-dialyzer-lux-${{ steps.setup-beam.outputs.otp-version }}-${{ steps.setup-beam.outputs.elixir-version }}-${{ hashFiles('lux/mix.lock') }}
 
       - name: Run Dialyzer
         run: mix dialyzer --format github
@@ -205,6 +207,7 @@ jobs:
 
       - name: Set up Elixir
         uses: erlef/setup-beam@v1
+        id: setup-beam
         with:
           otp-version: 'OTP-27.2'
           elixir-version: 'v1.18.1-otp-27'
@@ -236,8 +239,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: lux_app/priv/plts
-          key: ${{ runner.os }}-dialyzer-lux-app-${{ hashFiles('lux_app/mix.lock') }}
+          key: ${{ runner.os }}-dialyzer-lux-app-${{ steps.setup-beam.outputs.otp-version }}-${{ steps.setup-beam.outputs.elixir-version }}-${{ hashFiles('lux_app/mix.lock') }}
           restore-keys: |
+            ${{ runner.os }}-dialyzer-lux-app-${{ steps.setup-beam.outputs.otp-version }}-${{ steps.setup-beam.outputs.elixir-version }}-
             ${{ runner.os }}-dialyzer-lux-app-
 
       - name: Install Mix Dependencies
