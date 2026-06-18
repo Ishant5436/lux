@@ -27,7 +27,7 @@ defmodule Lux.Prisms.Curve.CurvePoolAnalysisPrism do
   def handler(%{"action" => "analyze"} = input, _ctx) do
     pool_address = input["pool_address"]
 
-    with {:ok, rpc_url} <- {:ok, "https://eth.llamarpc.com"},
+    with {:ok, rpc_url} <- {:ok, Lux.Config.resolve({:runtime_config, :lux, [:accounts, :evm_rpc_url], "https://eth.llamarpc.com"})},
          {:ok, %{"success" => true}} <- Lux.Python.import_package("curve_utils.pool"),
          {:ok, result} <- exec_analyze(rpc_url, pool_address) do
       {:ok, result}
@@ -43,19 +43,30 @@ defmodule Lux.Prisms.Curve.CurvePoolAnalysisPrism do
         from web3 import Web3
         import sys
         import os
+        import urllib.request
+        import json
         sys.path.append(os.getcwd() + '/priv/python')
         from curve_utils.pool import get_virtual_price
 
         w3 = Web3(Web3.HTTPProvider(rpc_url))
+        
+        # Get actual virtual price, do not fallback to 1.0 on failure
+        vp = get_virtual_price(w3, pool_address)
+        str_vp = str(vp / 1e18)
+        
+        # Fetch real APY data from Curve's public API
+        apy = "0.0"
         try:
-            vp = get_virtual_price(w3, pool_address)
-            str_vp = str(vp / 1e18)
+            req = urllib.request.Request("https://api.curve.fi/api/getFactoryAPYs?version=crypto", headers={'User-Agent': 'Mozilla/5.0'})
+            with urllib.request.urlopen(req, timeout=5) as response:
+                data = json.loads(response.read().decode())
+                if data.get('success'):
+                    pool_data = next((p for p in data['data']['poolDetails'] if p.get('poolAddress', '').lower() == pool_address.lower()), None)
+                    if pool_data and 'apy' in pool_data:
+                        apy = str(pool_data['apy'] / 100.0)
         except Exception:
-            str_vp = "1.0"
-        
-        # Mock APY calculation for demonstration purposes
-        apy = "0.05"
-        
+            pass # Fallback to 0.0 if API fails, but not mocked 0.05
+            
         {"virtual_price": str_vp, "apy": apy}
         """
       end

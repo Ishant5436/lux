@@ -31,9 +31,8 @@ defmodule Lux.Prisms.Curve.CurvePoolPrism do
     amounts = Map.get(input, "amounts", [0, 0, 0])
     min_mint_amount = Map.get(input, "min_amount", 0)
 
-    with {:ok, private_key} <- get_private_key(),
-         {:ok, address} <- {:ok, Config.hyperliquid_account_address()},
-         {:ok, rpc_url} <- {:ok, "https://eth.llamarpc.com"},
+    with {:ok, address} <- {:ok, Config.wallet_address()},
+         {:ok, rpc_url} <- {:ok, Lux.Config.resolve({:runtime_config, :lux, [:accounts, :evm_rpc_url], "https://eth.llamarpc.com"})},
          {:ok, %{"success" => true}} <- Lux.Python.import_package("curve_utils.pool"),
          {:ok, result} <- exec_add_liquidity(rpc_url, pool_address, amounts, min_mint_amount, address) do
       {:ok, %{transaction: result}}
@@ -47,21 +46,14 @@ defmodule Lux.Prisms.Curve.CurvePoolPrism do
     amount = Map.get(input, "amount", 0)
     min_amounts = Map.get(input, "min_amounts", [0, 0, 0])
 
-    with {:ok, private_key} <- get_private_key(),
-         {:ok, address} <- {:ok, Config.hyperliquid_account_address()},
-         {:ok, rpc_url} <- {:ok, "https://eth.llamarpc.com"},
+    with {:ok, address} <- {:ok, Config.wallet_address()},
+         {:ok, rpc_url} <- {:ok, Lux.Config.resolve({:runtime_config, :lux, [:accounts, :evm_rpc_url], "https://eth.llamarpc.com"})},
          {:ok, %{"success" => true}} <- Lux.Python.import_package("curve_utils.pool"),
          {:ok, result} <- exec_remove_liquidity(rpc_url, pool_address, amount, min_amounts, address) do
       {:ok, %{transaction: result}}
     else
       {:error, reason} -> {:error, reason}
     end
-  end
-
-  defp get_private_key do
-    {:ok, Config.hyperliquid_account_key()}
-  rescue
-    RuntimeError -> {:error, :missing_private_key}
   end
 
   defp exec_add_liquidity(rpc_url, pool_address, amounts, min_mint_amount, address) do

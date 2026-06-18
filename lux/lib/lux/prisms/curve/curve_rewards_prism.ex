@@ -27,21 +27,14 @@ defmodule Lux.Prisms.Curve.CurveRewardsPrism do
   def handler(%{"action" => "claim_rewards"} = input, _ctx) do
     gauge_address = input["gauge_address"]
 
-    with {:ok, private_key} <- get_private_key(),
-         {:ok, address} <- {:ok, Config.hyperliquid_account_address()},
-         {:ok, rpc_url} <- {:ok, "https://eth.llamarpc.com"},
+    with {:ok, address} <- {:ok, Config.wallet_address()},
+         {:ok, rpc_url} <- {:ok, Lux.Config.resolve({:runtime_config, :lux, [:accounts, :evm_rpc_url], "https://eth.llamarpc.com"})},
          {:ok, %{"success" => true}} <- Lux.Python.import_package("curve_utils.gauge"),
          {:ok, result} <- exec_claim_rewards(rpc_url, gauge_address, address) do
       {:ok, %{transaction: result}}
     else
       {:error, reason} -> {:error, reason}
     end
-  end
-
-  defp get_private_key do
-    {:ok, Config.hyperliquid_account_key()}
-  rescue
-    RuntimeError -> {:error, :missing_private_key}
   end
 
   defp exec_claim_rewards(rpc_url, gauge_address, address) do

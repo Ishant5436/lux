@@ -1,6 +1,5 @@
 from web3 import Web3
 
-# Minimal ABI for standard 3pool-like Curve pools
 STABLESWAP_ABI = [
     {
         "name": "get_virtual_price",
@@ -38,14 +37,21 @@ def get_virtual_price(w3: Web3, pool_address: str) -> int:
 
 def add_liquidity(w3: Web3, pool_address: str, amounts: list, min_mint_amount: int, user_address: str) -> dict:
     contract = w3.eth.contract(address=w3.to_checksum_address(pool_address), abi=STABLESWAP_ABI)
-    return contract.functions.add_liquidity(amounts, min_mint_amount).build_transaction({
+    # Return dry-run payload without hitting live RPC
+    func = contract.functions.add_liquidity(amounts, min_mint_amount)
+    data = func.encode_abi() if hasattr(func, 'encode_abi') else func.build_transaction({'from': user_address, 'nonce': 0, 'gas': 0, 'gasPrice': 0})['data']
+    return {
+        'to': w3.to_checksum_address(pool_address),
         'from': user_address,
-        'nonce': w3.eth.get_transaction_count(user_address),
-    })
+        'data': data
+    }
 
 def remove_liquidity(w3: Web3, pool_address: str, amount: int, min_amounts: list, user_address: str) -> dict:
     contract = w3.eth.contract(address=w3.to_checksum_address(pool_address), abi=STABLESWAP_ABI)
-    return contract.functions.remove_liquidity(amount, min_amounts).build_transaction({
+    func = contract.functions.remove_liquidity(amount, min_amounts)
+    data = func.encode_abi() if hasattr(func, 'encode_abi') else func.build_transaction({'from': user_address, 'nonce': 0, 'gas': 0, 'gasPrice': 0})['data']
+    return {
+        'to': w3.to_checksum_address(pool_address),
         'from': user_address,
-        'nonce': w3.eth.get_transaction_count(user_address),
-    })
+        'data': data
+    }
