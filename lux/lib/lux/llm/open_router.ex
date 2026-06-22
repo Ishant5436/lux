@@ -64,16 +64,20 @@ defmodule Lux.LLM.OpenRouter do
 
   @impl true
   def call(prompt, tools, config) do
+    config_map = Map.new(config || %{})
+    
+    env_config =
+      %{
+        model: Application.get_env(:lux, :open_router_models)[:default],
+        api_key: Application.get_env(:lux, :api_keys)[:openrouter]
+      }
+      |> Enum.reject(fn {_, v} -> is_nil(v) end)
+      |> Map.new()
+
     config =
       struct(
         Config,
-        Map.merge(
-          %{
-            model: Application.get_env(:lux, :open_router_models)[:default],
-            api_key: Application.get_env(:lux, :api_keys)[:openrouter]
-          },
-          config
-        )
+        Map.merge(env_config, config_map)
       )
 
     messages = config.messages ++ build_messages(prompt)
@@ -91,7 +95,7 @@ defmodule Lux.LLM.OpenRouter do
       |> maybe_add_response_format(config)
 
     [
-      url: @endpoint,
+      url: Lux.Config.resolve(config.endpoint),
       json: body,
       headers: [
         {"Authorization", "Bearer #{Lux.Config.resolve(config.api_key)}"},
