@@ -56,7 +56,7 @@ defmodule LuxApp.Contexts.Agents do
   def get_agent(id), do: Repo.get(Agent, id)
 
   @doc """
-  Creates an agent.
+  Creates a agent.
 
   ## Examples
 
@@ -75,7 +75,7 @@ defmodule LuxApp.Contexts.Agents do
   end
 
   @doc """
-  Updates an agent.
+  Updates a agent.
 
   ## Examples
 
@@ -94,7 +94,7 @@ defmodule LuxApp.Contexts.Agents do
   end
 
   @doc """
-  Deletes an agent.
+  Deletes a agent.
 
   ## Examples
 
