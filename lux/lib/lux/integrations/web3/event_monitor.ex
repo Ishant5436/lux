@@ -18,12 +18,6 @@ defmodule Lux.Integrations.Web3.EventMonitor do
     * `:webhook_url` - Webhook URL for alerting (optional).
   """
   def start_monitor(opts) do
-    # Ensure storage is started
-    case Storage.start_link() do
-      {:ok, _pid} -> :ok
-      {:error, {:already_started, _pid}} -> :ok
-    end
-
     WebSocket.start_link(opts)
   end
   
@@ -39,12 +33,6 @@ defmodule Lux.Integrations.Web3.EventMonitor do
     * `:to_block` - Hex string or tags like "latest" (optional).
   """
   def sync_historical(opts) do
-    # Ensure storage is started
-    case Storage.start_link() do
-      {:ok, _pid} -> :ok
-      {:error, {:already_started, _pid}} -> :ok
-    end
-    
     url = Keyword.fetch!(opts, :url)
     
     params = %{
