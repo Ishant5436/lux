@@ -43,37 +43,3 @@ liveSocket.connect()
 // >> liveSocket.disableLatencySim()
 window.liveSocket = liveSocket
 
-// Add a function to run the tests when the page is loaded
-window.runNodeEditorTests = function() {
-  console.log("Running Node Editor tests...");
-  NodeEditorTest.runTests();
-};
-
-// Add a debug button to the page to run tests
-document.addEventListener("DOMContentLoaded", function() {
-  // Check if we're on the node editor page
-  if (document.getElementById('reactflow-root')) {
-    // Create a debug button
-    const debugButton = document.createElement('button');
-    debugButton.textContent = 'Run UI Tests';
-    debugButton.style.position = 'fixed';
-    debugButton.style.bottom = '10px';
-    debugButton.style.left = '10px';
-    debugButton.style.zIndex = '9999';
-    debugButton.style.padding = '8px 16px';
-    debugButton.style.backgroundColor = '#4CAF50';
-    debugButton.style.color = 'white';
-    debugButton.style.border = 'none';
-    debugButton.style.borderRadius = '4px';
-    debugButton.style.cursor = 'pointer';
-    
-    // Add click event
-    debugButton.addEventListener('click', function() {
-      window.runNodeEditorTests();
-    });
-    
-    // Add to the page
-    document.body.appendChild(debugButton);
-  }
-});
-
