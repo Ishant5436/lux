@@ -55,6 +55,7 @@ defmodule Lux.Lenses.TradingView do
   Fetches historical OHLCV chart data.
   """
   def chart_data(opts \\ []) do
+    opts = normalize_opts(opts)
     symbol = Keyword.get(opts, :symbol) || raise ArgumentError, "symbol required"
     exchange = Keyword.get(opts, :exchange) || raise ArgumentError, "exchange required"
     interval = Keyword.get(opts, :interval, "1d")
@@ -76,6 +77,7 @@ defmodule Lux.Lenses.TradingView do
   Fetches TradingView scanner technical analysis summary.
   """
   def analysis(opts \\ []) do
+    opts = normalize_opts(opts)
     symbol = Keyword.get(opts, :symbol) || raise ArgumentError, "symbol required"
     exchange = Keyword.get(opts, :exchange) || raise ArgumentError, "exchange required"
     screener = Keyword.get(opts, :screener, "crypto")
@@ -98,6 +100,7 @@ defmodule Lux.Lenses.TradingView do
   Supported indicators: `:sma`, `:ema`, `:rsi`, `:macd`, `:bollinger`, `:stochastic`, `:atr`
   """
   def indicators(opts \\ []) do
+    opts = normalize_opts(opts)
     symbol = Keyword.get(opts, :symbol) || raise ArgumentError, "symbol required"
     exchange = Keyword.get(opts, :exchange) || raise ArgumentError, "exchange required"
     interval = Keyword.get(opts, :interval, "1d")
@@ -136,6 +139,7 @@ defmodule Lux.Lenses.TradingView do
   Evaluates alert conditions against current market data.
   """
   def evaluate_alerts(opts \\ []) do
+    opts = normalize_opts(opts)
     symbol = Keyword.get(opts, :symbol) || raise ArgumentError, "symbol required"
     exchange = Keyword.get(opts, :exchange) || raise ArgumentError, "exchange required"
     alerts = Keyword.get(opts, :alerts) || raise ArgumentError, "alerts required"
@@ -164,6 +168,7 @@ defmodule Lux.Lenses.TradingView do
   Runs a simple strategy backtest.
   """
   def backtest(opts \\ []) do
+    opts = normalize_opts(opts)
     symbol = Keyword.get(opts, :symbol) || raise ArgumentError, "symbol required"
     exchange = Keyword.get(opts, :exchange) || raise ArgumentError, "exchange required"
     strategy = Keyword.get(opts, :strategy) || raise ArgumentError, "strategy required"
@@ -191,6 +196,7 @@ defmodule Lux.Lenses.TradingView do
   Performs multi-timeframe analysis with key indicators across intervals.
   """
   def multi_timeframe_analysis(opts \\ []) do
+    opts = normalize_opts(opts)
     symbol = Keyword.get(opts, :symbol) || raise ArgumentError, "symbol required"
     exchange = Keyword.get(opts, :exchange) || raise ArgumentError, "exchange required"
     intervals = Keyword.get(opts, :intervals, ["15m", "1h", "4h", "1d"])
@@ -220,6 +226,7 @@ defmodule Lux.Lenses.TradingView do
   Generates trading signals from combined indicator analysis.
   """
   def signals(opts \\ []) do
+    opts = normalize_opts(opts)
     symbol = Keyword.get(opts, :symbol) || raise ArgumentError, "symbol required"
     exchange = Keyword.get(opts, :exchange) || raise ArgumentError, "exchange required"
     interval = Keyword.get(opts, :interval, "1d")
@@ -1078,5 +1085,13 @@ defmodule Lux.Lenses.TradingView do
       bearish_timeframes: bearish_count,
       neutral_timeframes: Enum.count(directions, &(&1 == :neutral))
     }
+  end
+
+  defp normalize_opts(opts) when is_list(opts), do: opts
+  defp normalize_opts(opts) when is_map(opts) do
+    Enum.map(opts, fn
+      {k, v} when is_binary(k) -> {String.to_atom(k), v}
+      {k, v} when is_atom(k) -> {k, v}
+    end)
   end
 end
