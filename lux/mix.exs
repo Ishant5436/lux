@@ -137,6 +137,7 @@ defmodule Lux.MixProject do
         "guides/prisms.livemd",
         "guides/signals.livemd",
         "guides/lenses.livemd",
+        "guides/event_monitor.livemd",
         "guides/language_support.md",
         "guides/language_support/python.livemd",
         "guides/language_support/nodejs.livemd",
