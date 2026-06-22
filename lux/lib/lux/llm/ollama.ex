@@ -11,10 +11,6 @@ defmodule Lux.LLM.Ollama do
   alias Lux.LLM.ResponseSignal
   alias Lux.Prism
 
-  require Beam
-  require Lens
-  require Logger
-
   @endpoint "http://localhost:11434/api/chat"
 
   defmodule Config do
@@ -215,7 +211,8 @@ defmodule Lux.LLM.Ollama do
     with %{"message" => message} <- body,
          finish_reason <- if(body["done"], do: "stop", else: "length"),
          {:ok, content} <- parse_content(message["content"]),
-         {:ok, tool_calls_results} <- execute_tool_calls(convert_tool_calls(message["tool_calls"])) do
+         {:ok, tool_calls_results} <-
+           execute_tool_calls(convert_tool_calls(message["tool_calls"])) do
       tool_calls = convert_tool_calls_for_response(message["tool_calls"])
 
       payload = %{
@@ -258,7 +255,10 @@ defmodule Lux.LLM.Ollama do
   defp convert_tool_calls(tool_calls) when is_list(tool_calls) do
     Enum.map(tool_calls, fn
       %{"function" => %{"name" => name, "arguments" => args}} when is_map(args) ->
-        %{"type" => "function", "function" => %{"name" => name, "arguments" => Jason.encode!(args)}}
+        %{
+          "type" => "function",
+          "function" => %{"name" => name, "arguments" => Jason.encode!(args)}
+        }
 
       %{"function" => %{"name" => name, "arguments" => args}} when is_binary(args) ->
         %{"type" => "function", "function" => %{"name" => name, "arguments" => args}}
@@ -273,7 +273,10 @@ defmodule Lux.LLM.Ollama do
   defp convert_tool_calls_for_response(tool_calls) when is_list(tool_calls) do
     Enum.map(tool_calls, fn
       %{"function" => %{"name" => name, "arguments" => args}} when is_map(args) ->
-        %{"type" => "function", "function" => %{"name" => name, "arguments" => Jason.encode!(args)}}
+        %{
+          "type" => "function",
+          "function" => %{"name" => name, "arguments" => Jason.encode!(args)}
+        }
 
       %{"function" => %{"name" => name, "arguments" => args}} when is_binary(args) ->
         %{"type" => "function", "function" => %{"name" => name, "arguments" => args}}
