@@ -22,6 +22,7 @@ defmodule Lux.Integrations.Web3.EventMonitor.WebSocket do
       address: Keyword.get(opts, :address),
       topics: Keyword.get(opts, :topics, []),
       webhook_url: Keyword.get(opts, :webhook_url),
+      abi: Keyword.get(opts, :abi),
       subscription_id: nil
     }
     WebSockex.start_link(url, __MODULE__, state)
@@ -74,16 +75,24 @@ defmodule Lux.Integrations.Web3.EventMonitor.WebSocket do
   end
   
   defp process_log(log, state) do
+    # Try to decode if ABI is available
+    decoded_log =
+      if state.abi && log["data"] && log["topics"] && length(log["topics"]) > 0 do
+        Lux.Integrations.Web3.EventMonitor.decode_log(log, state.abi)
+      else
+        log
+      end
+
     # Store the log
-    Storage.insert(log)
+    Storage.insert(decoded_log)
     
     # Fire webhook if configured
     if state.webhook_url do
       Task.start(fn -> 
         # Basic severity classification
-        severity = if log["removed"], do: "warning", else: "info"
+        severity = if decoded_log["removed"], do: "warning", else: "info"
         
-        case Req.post(state.webhook_url, json: %{event: log, severity: severity}) do
+        case Req.post(state.webhook_url, json: %{event: decoded_log, severity: severity}) do
           {:ok, _res} -> Logger.info("[Lux.Web3.EventMonitor] Alert sent to webhook.")
           {:error, err} -> Logger.error("[Lux.Web3.EventMonitor] Webhook delivery failed: #{inspect(err)}")
         end
