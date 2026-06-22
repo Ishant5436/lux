@@ -73,31 +73,26 @@ defmodule Lux.Integrations.Web3.EventMonitor do
   @doc false
   def decode_log(log, abi) do
     try do
-      # Attempt to decode the event using ex_abi.
-      # The first topic is the event signature hash.
-      [signature_hash | topics] = log["topics"]
+      topics = log["topics"] || []
       
       # Parse the ABI if it's a string, or assume it's already parsed
-      parsed_abi = if is_binary(abi), do: ABI.parse_specification(Jason.decode!(abi)), else: abi
+      parsed_abi = if is_binary(abi), do: ABI.parse_specification(Jason.decode!(abi), include_events?: true), else: abi
       
-      # Find the event in the ABI matching the signature hash
-      event_spec = Enum.find(parsed_abi, fn spec ->
-        spec.type == :event &&
-        ("0x" <> Base.encode16(ABI.Event.selector(spec), case: :lower)) == String.downcase(signature_hash)
+      topic_data = Enum.map(topics, fn t -> 
+        if is_nil(t), do: nil, else: t |> String.replace_leading("0x", "") |> Base.decode16!(case: :mixed) 
       end)
       
-      if event_spec do
-        # We need to pass the topic data without the "0x" prefix and decoded from hex
-        topic_data = Enum.map(topics, fn t -> 
-          t |> String.replace_leading("0x", "") |> Base.decode16!(case: :mixed) 
-        end)
-        
-        data_bytes = log["data"] |> String.replace_leading("0x", "") |> Base.decode16!(case: :mixed)
-        
-        decoded_values = ABI.Event.decode_event(data_bytes, topic_data, event_spec)
-        Map.put(log, "decoded", decoded_values)
-      else
-        log
+      # pad topics to length 4
+      [t1, t2, t3, t4] = Enum.take(topic_data ++ [nil, nil, nil, nil], 4)
+      
+      data_bytes = (log["data"] || "0x") |> String.replace_leading("0x", "") |> Base.decode16!(case: :mixed)
+      
+      case ABI.Event.find_and_decode(parsed_abi, t1, t2, t3, t4, data_bytes) do
+        {_selector, decoded_values} ->
+          formatted_values = Enum.into(decoded_values, %{}, fn {name, _type, _indexed, value} -> {name, value} end)
+          Map.put(log, "decoded", formatted_values)
+        {:error, _} ->
+          log
       end
     rescue
       e -> 
