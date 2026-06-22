@@ -10,10 +10,6 @@ defmodule Lux.LLM.OpenRouter do
   alias Lux.LLM.ResponseSignal
   alias Lux.Prism
 
-  require Beam
-  require Lens
-  require Logger
-
   @endpoint "https://openrouter.ai/api/v1/chat/completions"
 
   defmodule Config do
@@ -151,7 +147,11 @@ defmodule Lux.LLM.OpenRouter do
     }
   end
 
-  def tool_to_function(%Prism{module_name: name, description: description, input_schema: input_schema}) do
+  def tool_to_function(%Prism{
+        module_name: name,
+        description: description,
+        input_schema: input_schema
+      }) do
     %{
       type: "function",
       function: %{
@@ -240,7 +240,8 @@ defmodule Lux.LLM.OpenRouter do
         execute_tool(module_name, args, ctx)
 
       {:error, :nofile} ->
-        {:error, "Failed to load tool module #{tool_name}: It doesn't seems to be implemented or reacheable"}
+        {:error,
+         "Failed to load tool module #{tool_name}: It doesn't seems to be implemented or reacheable"}
 
       {:error, error} ->
         {:error, "Failed to load tool module #{tool_name}: #{inspect(error)}"}
@@ -256,10 +257,11 @@ defmodule Lux.LLM.OpenRouter do
         tool_module.run(args, ctx)
 
       true ->
-        {:error, """
-        Tool #{tool_module} does not seem to be a valid Beam or Prism
-        as it does not have a registered `handler` or `run` function.
-        """}
+        {:error,
+         """
+         Tool #{tool_module} does not seem to be a valid Beam or Prism
+         as it does not have a registered `handler` or `run` function.
+         """}
     end
   end
 
