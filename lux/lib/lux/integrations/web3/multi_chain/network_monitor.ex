@@ -9,15 +9,21 @@ defmodule Lux.Integrations.Web3.MultiChain.NetworkMonitor do
   alias Lux.Integrations.Web3.MultiChain.Storage
 
   def start_link(%{chain_id: chain_id, rpc_url: "wss://" <> _ = rpc_url}) do
-    WebSockex.start_link(rpc_url, __MODULE__, %{chain_id: chain_id, rpc_url: rpc_url, mode: :websocket}, name: via_tuple(chain_id))
+    WebSockex.start_link(
+      rpc_url,
+      __MODULE__,
+      %{chain_id: chain_id, rpc_url: rpc_url, mode: :websocket}, name: via_tuple(chain_id))
   end
 
   def start_link(%{chain_id: chain_id, rpc_url: rpc_url}) do
     # Fallback to standard GenServer if HTTP
-    GenServer.start_link(__MODULE__, %{chain_id: chain_id, rpc_url: rpc_url, mode: :http}, name: via_tuple(chain_id))
+    GenServer.start_link(__MODULE__, %{chain_id: chain_id, rpc_url: rpc_url, mode: :http},
+      name: via_tuple(chain_id)
+    )
   end
 
-  defp via_tuple(chain_id), do: {:via, Registry, {Lux.AgentHub, "multi_chain_monitor_#{chain_id}"}}
+  defp via_tuple(chain_id),
+    do: {:via, Registry, {Lux.AgentHub, "multi_chain_monitor_#{chain_id}"}}
 
   # =========================================================
   # WebSocket Implementation
@@ -25,7 +31,7 @@ defmodule Lux.Integrations.Web3.MultiChain.NetworkMonitor do
 
   def handle_connect(_conn, %{mode: :websocket} = state) do
     Logger.info("[MultiChain] Connected to WebSocket for chain: #{state.chain_id}")
-    
+
     # Subscribe to new heads
     req = %{
       "jsonrpc" => "2.0",
@@ -33,7 +39,7 @@ defmodule Lux.Integrations.Web3.MultiChain.NetworkMonitor do
       "method" => "eth_subscribe",
       "params" => ["newHeads"]
     }
-    
+
     # Subscribe to logs
     logs_req = %{
       "jsonrpc" => "2.0",
@@ -42,24 +48,34 @@ defmodule Lux.Integrations.Web3.MultiChain.NetworkMonitor do
       "params" => ["logs", %{}]
     }
 
-    {:reply, [
-      {:text, Jason.encode!(req)},
-      {:text, Jason.encode!(logs_req)}
-    ], state}
+    {:reply,
+     [
+       {:text, Jason.encode!(req)},
+       {:text, Jason.encode!(logs_req)}
+     ], state}
   end
 
   def handle_frame({:text, msg}, %{mode: :websocket} = state) do
     case Jason.decode(msg) do
-      {:ok, %{"method" => "eth_subscription", "params" => %{"result" => result, "subscription" => _sub_id}}} ->
+      {:ok,
+       %{
+         "method" => "eth_subscription",
+         "params" => %{"result" => result, "subscription" => _sub_id}
+       }} ->
         process_incoming_data(state.chain_id, result)
+
       _ ->
         :ok
     end
+
     {:ok, state}
   end
-  
+
   def handle_disconnect(%{reason: reason}, state) do
-    Logger.warning("[MultiChain] WebSocket disconnected for chain #{state.chain_id}: #{inspect(reason)}")
+    Logger.warning(
+      "[MultiChain] WebSocket disconnected for chain #{state.chain_id}: #{inspect(reason)}"
+    )
+
     {:reconnect, state}
   end
 
@@ -85,6 +101,7 @@ defmodule Lux.Integrations.Web3.MultiChain.NetworkMonitor do
     case Req.post(state.rpc_url, json: req) do
       {:ok, %{status: 200, body: %{"result" => block}}} when not is_nil(block) ->
         process_incoming_data(state.chain_id, block)
+
       _ ->
         :ok
     end

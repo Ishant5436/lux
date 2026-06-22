@@ -28,7 +28,7 @@ defmodule Lux.Integrations.Web3.MultiChain.Aggregator do
       id: :"chain_monitor_#{chain_id}",
       start: {NetworkMonitor, :start_link, [%{chain_id: chain_id, rpc_url: rpc_url}]}
     }
-    
+
     Supervisor.start_child(__MODULE__, child_spec)
   end
 

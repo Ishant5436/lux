@@ -31,23 +31,29 @@ defmodule Lux.Integrations.Web3.MultiChain.Storage do
     :ets.match_object(@table_name, {{:block, :"$1", :_}, :"$2", :_})
     |> Enum.group_by(fn {{:block, chain_id, _}, _, _} -> chain_id end)
     |> Enum.map(fn {chain_id, entries} ->
-      latest = entries
-               |> Enum.map(fn {_, data, _} -> data end)
-               |> Enum.sort_by(&(&1["timestamp"] || 0), :desc)
-               |> List.first()
+      latest =
+        entries
+        |> Enum.map(fn {_, data, _} -> data end)
+        |> Enum.sort_by(&(&1["timestamp"] || 0), :desc)
+        |> List.first()
+
       {chain_id, latest}
     end)
     |> Enum.into(%{})
   end
 
   def get_events(chain_id_filter \\ nil) do
-    match_spec = if chain_id_filter, do: {{:event, chain_id_filter, :_, :_}, :"$1", :_}, else: {{:event, :"$1", :_, :_}, :"$2", :_}
-    
+    match_spec =
+      if chain_id_filter,
+        do: {{:event, chain_id_filter, :_, :_}, :"$1", :_},
+        else: {{:event, :"$1", :_, :_}, :"$2", :_}
+
     :ets.match_object(@table_name, match_spec)
-    |> Enum.map(fn {key, data, ts} -> 
-       case key do
-         {:event, c_id, tx, idx} -> %{chain_id: c_id, transaction: tx, index: idx, data: data, recorded_at: ts}
-       end
+    |> Enum.map(fn {key, data, ts} ->
+      case key do
+        {:event, c_id, tx, idx} ->
+          %{chain_id: c_id, transaction: tx, index: idx, data: data, recorded_at: ts}
+      end
     end)
   end
 
