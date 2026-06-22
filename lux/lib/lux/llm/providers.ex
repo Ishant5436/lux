@@ -64,7 +64,7 @@ defmodule Lux.LLM.Providers do
       models: ~w(gpt-4o gpt-4o-mini gpt-4 gpt-3.5-turbo),
       capabilities: [:tools, :structured_output, :vision],
       cost_per_input_token: %{default: 2.5e-6, "gpt-4o-mini": 0.15e-6},
-      cost_per_output_token: %{default: 1e-5, "gpt-4o-mini": 0.6e-6},
+      cost_per_output_token: %{default: 1.0e-5, "gpt-4o-mini": 0.6e-6},
       priority: 1
     })
 
@@ -72,7 +72,7 @@ defmodule Lux.LLM.Providers do
       module: LLM.Anthropic,
       models: ~w(claude-3-opus-20240229 claude-3-sonnet-20240229 claude-3-haiku-20240307),
       capabilities: [:tools, :vision, :long_context],
-      cost_per_input_token: %{default: 3e-6, "claude-3-haiku-20240307": 0.25e-6},
+      cost_per_input_token: %{default: 3.0e-6, "claude-3-haiku-20240307": 0.25e-6},
       cost_per_output_token: %{default: 1.5e-5, "claude-3-haiku-20240307": 1.25e-6},
       priority: 2
     })
@@ -339,8 +339,10 @@ defmodule Lux.LLM.Providers do
   Retrieves a cached response.
   """
   def get_cached(key) do
+    now = System.monotonic_time(:millisecond)
+
     case :ets.lookup(@cache_table, cache_hash(key)) do
-      [{_hk, %{response: r, expires_at: exp}}] when exp > System.monotonic_time(:millisecond) ->
+      [{_hk, %{response: r, expires_at: exp}}] when exp > now ->
         {:ok, r}
 
       [{_hk, _}] ->
@@ -369,10 +371,13 @@ defmodule Lux.LLM.Providers do
 
   @impl true
   def call(prompt, tools \\ [], options \\ %{}) do
-    opts = normalize_opts(options)
-    cache_key = "#{prompt}|#{inspect(tools)}|#{opts[:model] || :any}"
+    ensure_init!()
 
-    if Keyword.get(opts, :cache, true) do
+    opts = normalize_opts(options)
+    opts_hash = :erlang.phash2(Map.drop(opts, [:model, :cache]))
+    cache_key = "#{prompt}|#{inspect(tools)}|#{opts[:model] || :any}|#{opts_hash}"
+
+    if Map.get(opts, :cache, true) do
       case get_cached(cache_key) do
         {:ok, response} -> {:ok, response}
         _ -> do_call_with_fallback(prompt, tools, opts, cache_key)
@@ -427,8 +432,8 @@ defmodule Lux.LLM.Providers do
     if :ets.info(@registry_table) == :undefined, do: init()
   end
 
-  defp normalize_opts(opts) when is_list(opts), do: opts
-  defp normalize_opts(opts) when is_map(opts), do: Map.to_list(opts)
+  defp normalize_opts(opts) when is_list(opts), do: Map.new(opts)
+  defp normalize_opts(opts) when is_map(opts), do: opts
 
   defp has_caps?(provider, []), do: true
 
