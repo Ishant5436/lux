@@ -225,8 +225,7 @@ defmodule Lux.Lenses.TradingView do
     interval = Keyword.get(opts, :interval, "1d")
     bars = Keyword.get(opts, :bars, 150)
 
-    with {:ok} <- {:ok, nil},
-         {:ok, chart} <- chart_data(symbol: symbol, exchange: exchange, interval: interval, bars: bars),
+    with {:ok, chart} <- chart_data(symbol: symbol, exchange: exchange, interval: interval, bars: bars),
          {:ok, ind} <- indicators(
            symbol: symbol,
            exchange: exchange,
@@ -308,17 +307,12 @@ defmodule Lux.Lenses.TradingView do
   """
   def calc_ema(data, period) when length(data) >= period do
     multiplier = 2.0 / (period + 1)
-    sma = calc_sma(Enum.take(data, period * 2), period)
-
-    initial_sma = List.last(sma) || Enum.sum(Enum.take(data, period)) / period
+    initial_sma = Enum.sum(Enum.take(data, period)) / period
 
     data
-    |> Enum.drop(period - 1)
-    |> Enum.reduce([], fn price, acc ->
-      case acc do
-        [] -> [initial_sma]
-        [prev | _] -> [(price - prev) * multiplier + prev | acc]
-      end
+    |> Enum.drop(period)
+    |> Enum.reduce([initial_sma], fn price, [prev | _] = acc ->
+      [(price - prev) * multiplier + prev | acc]
     end)
     |> Enum.reverse()
   end
@@ -340,12 +334,12 @@ defmodule Lux.Lenses.TradingView do
     avg_gain = Enum.sum(Enum.take(gains, period)) / period
     avg_loss = Enum.sum(Enum.take(losses, period)) / period
 
+    rest_gains = Enum.drop(gains, period)
+    rest_losses = Enum.drop(losses, period)
+
     rsi_values =
-      [avg_gain, avg_loss]
-      |> Kernel.++(Enum.drop(gains, period))
-      |> Kernel.++(Enum.drop(losses, period))
-      |> Enum.chunk_every(2)
-      |> Enum.scan({avg_gain, avg_loss}, fn [g, l], {prev_g, prev_l} ->
+      Enum.zip(rest_gains, rest_losses)
+      |> Enum.scan({avg_gain, avg_loss}, fn {g, l}, {prev_g, prev_l} ->
         new_g = (prev_g * (period - 1) + g) / period
         new_l = (prev_l * (period - 1) + l) / period
         {new_g, new_l}
@@ -354,7 +348,8 @@ defmodule Lux.Lenses.TradingView do
         if l == 0, do: 100.0, else: 100.0 - (100.0 / (1.0 + g / l))
       end)
 
-    [nil | rsi_values]
+    first_rsi = if avg_loss == 0, do: 100.0, else: 100.0 - (100.0 / (1.0 + avg_gain / avg_loss))
+    [first_rsi | rsi_values]
   end
 
   def calc_rsi(_data, _period), do: []
@@ -938,7 +933,7 @@ defmodule Lux.Lenses.TradingView do
             if in_trade && f < s do
               sell_value = price * pos
               new_cap = cap + sell_value
-              profit_loss = sell_value - (Enum.at(log, -1)[:price] * pos) if length(log) > 0
+              profit_loss = if length(log) > 0, do: sell_value - (Enum.at(log, -1)[:price] * pos), else: 0
               is_win = profit_loss > 0
               {new_cap, 0.0, false,
                log ++ [%{time: t, action: :sell, price: price, capital: new_cap}],
@@ -984,7 +979,7 @@ defmodule Lux.Lenses.TradingView do
           else
             if pos > 0 && is_number(r) && r >= overbought do
               sell_value = price * pos
-              is_win = sell_value > (Enum.at(log, -1)[:price] * pos) if length(log) > 0
+              is_win = if length(log) > 0, do: sell_value > (Enum.at(log, -1)[:price] * pos), else: false
               {cap + sell_value, 0.0,
                log ++ [%{time: t, action: :sell, price: price}],
                w + (if is_win, do: 1, else: 0), l + (if is_win, do: 0, else: 1),
