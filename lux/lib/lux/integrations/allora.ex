@@ -139,7 +139,7 @@ defmodule Lux.Integrations.Allora do
   @type api_key :: String.t()
   @type headers :: [{String.t(), String.t()}]
 
-  require Logger
+  
 
   @doc """
   Gets the configured Allora base URL.

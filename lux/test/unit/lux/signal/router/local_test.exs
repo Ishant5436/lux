@@ -4,7 +4,7 @@ defmodule Lux.Signal.Router.LocalTest do
   alias Lux.Signal
   alias Lux.Signal.Router.Local
 
-  require Logger
+
 
   # Single test agent module for all tests
   defmodule TestAgent1 do

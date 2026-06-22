@@ -6,7 +6,7 @@ defmodule Lux.LLM.TogetherAITest do
   alias Lux.Signal
 
   require Lux.Beam
-  require Lux.Lens
+
   require Lux.Prism
 
   defmodule TestPrism do

@@ -98,7 +98,7 @@ defmodule Lux.Agents.MarketResearcher do
       ]
     }
 
-  require Logger
+  
 
   def propose_trade(agent, market_conditions) do
     with {:ok, trade_proposal} <-

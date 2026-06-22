@@ -10,8 +10,7 @@ defmodule Lux.LLM.OpenAI do
   alias Lux.LLM.ResponseSignal
   alias Lux.Prism
 
-  require Beam
-  require Lens
+
   require Logger
 
   @endpoint "https://api.openai.com/v1/chat/completions"

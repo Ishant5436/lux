@@ -10,11 +10,10 @@ defmodule Lux.LLM.Mira do
   alias Lux.LLM.ResponseSignal
   alias Lux.Prism
 
-  require Beam
-  require Lens
+
   require Logger
 
-  @endpoint "https://api.mira.network/v1/chat/completions"
+
 
   defmodule Config do
     @moduledoc """
@@ -70,7 +69,7 @@ defmodule Lux.LLM.Mira do
     |> Req.post()
     |> case do
       {:ok, %{status: 200} = response} ->
-        handle_response(response, config)
+        handle_response(response)
 
       {:ok, %{status: 401}} ->
         {:error, :invalid_api_key}
@@ -136,14 +135,14 @@ defmodule Lux.LLM.Mira do
     }
   end
 
-  defp handle_response(%{body: body}, _config) when is_binary(body) do
+  defp handle_response(%{body: body}) when is_binary(body) do
     case Jason.decode(body) do
-      {:ok, decoded} -> handle_response(%{body: decoded}, _config)
+      {:ok, decoded} -> handle_response(%{body: decoded})
       {:error, _} -> {:error, "Failed to decode response body"}
     end
   end
 
-  defp handle_response(%{body: %{"data" => data}}, _config) do
+  defp handle_response(%{body: %{"data" => data}}) do
     with %{
            "choices" => [choice | _],
            "usage" => usage,

@@ -6,7 +6,7 @@ defmodule Lux.Agent.Loaders do
   alias Lux.Agent.Generator
   alias Lux.Agent.Loaders.Json, as: JsonLoader
 
-  require Logger
+  
 
   @doc """
   Creates agent module(s) from JSON configuration(s).

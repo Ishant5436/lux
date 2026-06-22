@@ -3,7 +3,7 @@ defmodule Lux.Integrations.Telegram.Client do
   Basic HTTP client for Telegram Bot API requests.
   """
 
-  require Logger
+  
 
   @endpoint "https://api.telegram.org/bot"
 

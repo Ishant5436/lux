@@ -10,8 +10,7 @@ defmodule Lux.LLM.TogetherAI do
     alias Lux.LLM.ResponseSignal
     alias Lux.Prism
 
-    require Beam
-    require Lens
+
     require Logger
 
     @endpoint "https://api.together.xyz/v1/chat/completions"

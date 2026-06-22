@@ -3,7 +3,7 @@ defmodule Lux.Integrations.Discord.Client do
   Basic HTTP client for Discord API requests.
   """
 
-  require Logger
+  
 
   @endpoint "https://discord.com/api/v10"
 
