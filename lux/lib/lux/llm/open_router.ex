@@ -9,6 +9,7 @@ defmodule Lux.LLM.OpenRouter do
   alias Lux.Lens
   alias Lux.LLM.ResponseSignal
   alias Lux.Prism
+  require Logger
 
   @endpoint "https://openrouter.ai/api/v1/chat/completions"
 
