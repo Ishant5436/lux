@@ -17,6 +17,9 @@ defmodule Lux.Prisms.Coinbase.CoinbaseOrderPrism do
     market_type = Map.get(input, :market_type, "spot")
     price = Map.get(input, :price, nil)
     testnet = Map.get(input, :testnet, false)
+    
+    api_key = Map.get(input, :api_key) || Lux.Config.get_module_config(_ctx, __MODULE__, :api_key)
+    secret = Map.get(input, :secret) || Lux.Config.get_module_config(_ctx, __MODULE__, :secret)
 
     Logger.info("Executing Coinbase order for #{symbol}")
 
@@ -28,14 +31,12 @@ defmodule Lux.Prisms.Coinbase.CoinbaseOrderPrism do
         amount: amount,
         price: price,
         market_type: market_type,
-        testnet: testnet
+        testnet: testnet,
+        api_key: api_key,
+        secret: secret
       } do
         ~PY"""
         from coinbase_utils.coinbase_client import CoinbaseClient
-        import os
-
-        api_key = os.environ.get('COINBASE_API_KEY')
-        secret = os.environ.get('COINBASE_SECRET')
         
         client = CoinbaseClient(
             api_key=api_key, 
