@@ -11,7 +11,7 @@ defmodule Lux.Beams.YouTube.CommunityManagementBeam do
     }
 
   sequence do
-    step(:fetch_comments, Lux.Prisms.YouTube.FetchCommentsPrism, %{videoId: :videoId})
-    step(:process_comments, Lux.Prisms.YouTube.ProcessCommentsPrism, %{comments_data: {:ref, "fetch_comments"}})
+    step(:fetch_comments, Lux.Prisms.YouTube.FetchCommentsPrism, %{videoId: [:input, :videoId]})
+    step(:process_comments, Lux.Prisms.YouTube.ProcessCommentsPrism, %{comments_data: [:steps, :fetch_comments, :result]})
   end
 end

@@ -31,7 +31,8 @@ defmodule Lux.Beams.YouTube.CommunityManagementBeamTest do
       ]},
       {Lux.LLM.OpenAI, [], [
         call: fn prompt, _tools, _opts ->
-          if String.contains?(prompt, "Great video!") do
+          IO.inspect(prompt, label: "MOCK_PROMPT")
+          if is_binary(prompt) and String.contains?(prompt, "Great video!") do
             {:ok, %Lux.LLM.Response{content: "positive"}}
           else
             {:ok, %Lux.LLM.Response{content: "spam"}}
@@ -42,9 +43,9 @@ defmodule Lux.Beams.YouTube.CommunityManagementBeamTest do
       assert {:ok, result, _log} = CommunityManagementBeam.run(%{videoId: "vid123"})
         
         # Result will be the output of the last step, which is process_comments
-        assert length(result.output) == 2
+        assert length(result) == 2
         
-        [first, second] = result.output
+        [first, second] = result
         
         assert first.id == "c1"
         assert first.sentiment == :positive

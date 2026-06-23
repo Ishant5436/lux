@@ -16,7 +16,7 @@ defmodule Lux.Prisms.YouTube.ProcessCommentsPrism do
       text = item["snippet"]["topLevelComment"]["snippet"]["textOriginal"] || item["snippet"]["topLevelComment"]["snippet"]["textDisplay"]
 
       # Run Sentiment Beam
-      {:ok, %{sentiment: sentiment}} = Lux.Beams.YouTube.SentimentAnalysisBeam.run(%{text: text})
+      {:ok, %{sentiment: sentiment}, _log} = Lux.Beams.YouTube.SentimentAnalysisBeam.run(%{text: text})
 
       action_result =
         case sentiment do

@@ -11,6 +11,6 @@ defmodule Lux.Beams.YouTube.SentimentAnalysisBeam do
     }
 
   sequence do
-    step(:sentiment, Lux.Prisms.YouTube.SentimentLLMPrism, %{text: :text})
+    step(:sentiment, Lux.Prisms.YouTube.SentimentLLMPrism, %{text: [:input, :text]})
   end
 end
