@@ -17,6 +17,9 @@ defmodule Lux.Prisms.Binance.BinanceOrderPrism do
     market_type = Map.get(input, :market_type, "spot")
     price = Map.get(input, :price, nil)
     testnet = Map.get(input, :testnet, false)
+    
+    api_key = Map.get(input, :api_key) || Lux.Config.get_module_config(_ctx, __MODULE__, :api_key)
+    secret = Map.get(input, :secret) || Lux.Config.get_module_config(_ctx, __MODULE__, :secret)
 
     Logger.info("Executing Binance order for #{symbol}")
 
@@ -28,14 +31,12 @@ defmodule Lux.Prisms.Binance.BinanceOrderPrism do
         amount: amount,
         price: price,
         market_type: market_type,
-        testnet: testnet
+        testnet: testnet,
+        api_key: api_key,
+        secret: secret
       } do
         ~PY"""
         from binance_utils.binance_client import BinanceClient
-        import os
-
-        api_key = os.environ.get('BINANCE_API_KEY')
-        secret = os.environ.get('BINANCE_SECRET')
         
         client = BinanceClient(
             api_key=api_key, 

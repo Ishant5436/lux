@@ -15,17 +15,23 @@ defmodule Lux.Prisms.Binance.BinancePortfolioPrism do
   def handler(%{action: action} = input, _ctx) do
     market_type = Map.get(input, :market_type, "spot")
     testnet = Map.get(input, :testnet, false)
+    
+    api_key = Map.get(input, :api_key) || Lux.Config.get_module_config(_ctx, __MODULE__, :api_key)
+    secret = Map.get(input, :secret) || Lux.Config.get_module_config(_ctx, __MODULE__, :secret)
 
     Logger.info("Fetching Binance portfolio data: #{action}")
 
     python_result =
-      python variables: %{action: action, market_type: market_type, testnet: testnet} do
+      python variables: %{
+        action: action, 
+        market_type: market_type, 
+        testnet: testnet,
+        api_key: api_key,
+        secret: secret
+      } do
         ~PY"""
         from binance_utils.binance_client import BinanceClient
-        import os
         
-        api_key = os.environ.get('BINANCE_API_KEY')
-        secret = os.environ.get('BINANCE_SECRET')
         client = BinanceClient(
             api_key=api_key, 
             secret=secret, 
