@@ -10,6 +10,7 @@ defmodule Lux.LLM.Ollama do
   alias Lux.Lens
   alias Lux.LLM.ResponseSignal
   alias Lux.Prism
+  require Logger
 
   @endpoint "http://localhost:11434/api/chat"
 
