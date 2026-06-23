@@ -9,6 +9,7 @@ defmodule Lux.LLM.Perplexity do
   alias Lux.Lens
   alias Lux.LLM.ResponseSignal
   alias Lux.Prism
+  require Logger
 
   @endpoint "https://api.perplexity.ai/chat/completions"
 
