@@ -24,7 +24,7 @@ defmodule Lux.Prisms.YouTube.UpdateBroadcastStatusTest do
         Req.Test.json(conn, %{"id" => "broadcast123", "status" => %{"lifeCycleStatus" => "live"}})
       end)
 
-      params = %{broadcast_id: "broadcast123", status: "live"}
+      params = %{broadcast_id: "broadcast123", status: "live", dry_run: false}
       
       assert {:ok, result} = UpdateBroadcastStatus.handler(params, nil)
       assert result["status"]["lifeCycleStatus"] == "live"

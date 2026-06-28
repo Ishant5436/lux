@@ -31,7 +31,7 @@ defmodule Lux.Prisms.YouTube.SendChatMessage do
   def handler(params, _context) do
     live_chat_id = Map.get(params, "live_chat_id") || Map.get(params, :live_chat_id)
     message_text = Map.get(params, "message_text") || Map.get(params, :message_text)
-    dry_run = Map.get(params, "dry_run") || Map.get(params, :dry_run) || false
+    dry_run = Map.get_lazy(params, "dry_run", fn -> Map.get(params, :dry_run, true) end)
 
     config = %Client.Config{
       access_token: Application.get_env(:lux, :api_keys)[:youtube_access_token],

@@ -9,7 +9,7 @@ defmodule Lux.SignalSchema do
 
   alias Lux.UUID
 
-
+  require Logger
 
   @type compatibility :: :full | :backward | :forward | :none
   @type format :: :json | :yaml | :binary | :text

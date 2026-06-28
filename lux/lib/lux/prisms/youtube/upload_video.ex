@@ -47,7 +47,7 @@ defmodule Lux.Prisms.YouTube.UploadVideo do
     tags = Map.get(params, "tags") || Map.get(params, :tags) || []
     privacy_status = Map.get(params, "privacy_status") || Map.get(params, :privacy_status) || "private"
     video_data_base64 = Map.get(params, "video_data_base64") || Map.get(params, :video_data_base64)
-    dry_run = Map.get(params, "dry_run") || Map.get(params, :dry_run) || false
+    dry_run = Map.get_lazy(params, "dry_run", fn -> Map.get(params, :dry_run, true) end)
 
     config = %Client.Config{
       access_token: Application.get_env(:lux, :api_keys)[:youtube_access_token],

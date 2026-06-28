@@ -116,8 +116,8 @@ defmodule Lux.Beam.Runner do
     execute_step(step, context)
   end
 
-  defp execute_steps(step, context) do
-    {:error, {:invalid_step, step}, context}
+  defp execute_steps(step, context) when not is_nil(step) do
+    execute_step(step, context)
   end
 
   defp execute_step(%{id: id, module: module, params: params, opts: opts}, context) do

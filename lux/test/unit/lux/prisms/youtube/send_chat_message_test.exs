@@ -25,7 +25,7 @@ defmodule Lux.Prisms.YouTube.SendChatMessageTest do
         Req.Test.json(conn, %{"id" => "msg123"})
       end)
 
-      params = %{live_chat_id: "chat123", message_text: "Hello World!"}
+      params = %{live_chat_id: "chat123", message_text: "Hello World!", dry_run: false}
       
       assert {:ok, result} = SendChatMessage.handler(params, nil)
       assert result["id"] == "msg123"

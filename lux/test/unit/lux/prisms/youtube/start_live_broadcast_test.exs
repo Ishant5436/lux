@@ -41,7 +41,8 @@ defmodule Lux.Prisms.YouTube.StartLiveBroadcastTest do
       params = %{
         title: "Test Broadcast",
         description: "A test broadcast",
-        scheduled_start_time: "2024-01-01T00:00:00Z"
+        scheduled_start_time: "2024-01-01T00:00:00Z",
+        dry_run: false
       }
       
       assert {:ok, result} = StartLiveBroadcast.handler(params, nil)

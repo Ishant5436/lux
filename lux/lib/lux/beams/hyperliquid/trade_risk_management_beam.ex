@@ -81,7 +81,7 @@ defmodule Lux.Beams.Hyperliquid.TradeRiskManagementBeam do
   alias Lux.Prisms.Hyperliquid.HyperliquidTokenInfoPrism
   alias Lux.Prisms.Hyperliquid.HyperliquidUserStatePrism
 
-  
+  require Logger
 
   sequence do
     # Get current portfolio state

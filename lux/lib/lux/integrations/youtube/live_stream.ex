@@ -1,6 +1,10 @@
 defmodule Lux.Integrations.YouTube.LiveStream do
   @moduledoc """
   Handles YouTube Live Stream creation, binding, and health monitoring.
+
+  **NOTE**: Live streaming workflow transitions (e.g. ready -> testing -> 
+  live -> complete) are exposed as basic endpoints but do not fully manage 
+  state, retry logic, or credential-free test coverage.
   """
 
   alias Lux.Integrations.YouTube.Client

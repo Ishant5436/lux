@@ -50,7 +50,7 @@ defmodule Lux.Prisms.YouTube.StartLiveBroadcast do
 
     config = %Client.Config{
       access_token: Application.get_env(:lux, :api_keys)[:youtube_access_token],
-      dry_run: Map.get(params_atoms, :dry_run, false)
+      dry_run: Map.get(params_atoms, :dry_run, true)
     }
 
     with {:ok, broadcast_resp} <- LiveStream.create_broadcast(params_atoms, config),

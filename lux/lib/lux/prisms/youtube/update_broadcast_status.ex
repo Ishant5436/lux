@@ -31,7 +31,7 @@ defmodule Lux.Prisms.YouTube.UpdateBroadcastStatus do
   def handler(params, _context) do
     broadcast_id = Map.get(params, "broadcast_id") || Map.get(params, :broadcast_id)
     status = Map.get(params, "status") || Map.get(params, :status)
-    dry_run = Map.get(params, "dry_run") || Map.get(params, :dry_run) || false
+    dry_run = Map.get_lazy(params, "dry_run", fn -> Map.get(params, :dry_run, true) end)
 
     config = %Client.Config{
       access_token: Application.get_env(:lux, :api_keys)[:youtube_access_token],

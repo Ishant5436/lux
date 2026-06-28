@@ -4,6 +4,10 @@ defmodule Lux.Integrations.YouTube.Client do
 
   Handles OAuth2 / API Key authentication, standard error boundaries, dry runs,
   and base URL generation.
+
+  **NOTE**: This is a static-token helper slice for YouTube integration, rather 
+  than a complete OAuth2 implementation. Token lifecycle (exchange, refresh) 
+  must be managed externally.
   """
 
   @base_url "https://www.googleapis.com/youtube/v3"

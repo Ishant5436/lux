@@ -10,8 +10,9 @@ defmodule Lux.LLM.Anthropic do
   alias Lux.Lens
   alias Lux.Prism
 
-
-  
+  require Beam
+  require Lens
+  require Logger
 
   @endpoint "https://api.anthropic.com/v1/messages"
 

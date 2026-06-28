@@ -46,7 +46,8 @@ defmodule Lux.Prisms.YouTube.UploadVideoTest do
       params = %{
         video_data_base64: Base.encode64("dummy video content"),
         title: "Test Video",
-        description: "A test video upload"
+        description: "A test video upload",
+        dry_run: false
       }
       
       assert {:ok, result} = UploadVideo.handler(params, nil)

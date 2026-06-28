@@ -1,6 +1,10 @@
 defmodule Lux.Integrations.YouTube.VideoUpload do
   @moduledoc """
   Handles resumable video uploads to YouTube via the Data API v3.
+
+  **NOTE**: This is a simplified single-PUT implementation. It does not fully 
+  implement chunked resumable upload workflows, such as handling 308 
+  Resume Incomplete, Content-Range headers, or retry/resume flows.
   """
 
   alias Lux.Integrations.YouTube.Client
